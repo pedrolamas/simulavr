@@ -1,5 +1,5 @@
-# ToDo: what's the oldest possible version?
-cmake_minimum_required(VERSION 3.5)
+# Updated to modern CMake version to avoid deprecation warnings
+cmake_minimum_required(VERSION 3.10)
 
 project(Simulavr)
 
@@ -24,13 +24,14 @@ option(BUILD_VERILOG "build VERILOG module" OFF)
 option(CHECK_VALGRIND "run gtest regression test with valgrind" OFF)
 
 # find tools
-# find python executable, for Python3 you need a virtual env, which links python to python3 executable!
-find_package(PythonInterp 3.5)
-execute_process(COMMAND ${PYTHON_EXECUTABLE}
-                        -c "import sys; print('%s.%s' % (sys.version_info.major, sys.version_info.minor))"
-                        OUTPUT_VARIABLE PYTHON_VERSION
-                        OUTPUT_STRIP_TRAILING_WHITESPACE)
-string(REGEX MATCH "[0-9]" PYTHON_MAJOR_VERSION ${PYTHON_VERSION})
+# find python executable
+find_package(Python3 3.5 COMPONENTS Interpreter Development)
+if(Python3_FOUND)
+  set(PYTHON_EXECUTABLE ${Python3_EXECUTABLE})
+  set(PYTHON_VERSION ${Python3_VERSION})
+  set(PYTHON_MAJOR_VERSION ${Python3_VERSION_MAJOR})
+  set(PYTHONINTERP_FOUND TRUE)
+endif()
 
 # SWIG
 if(BUILD_TCL OR BUILD_PYTHON)
@@ -41,9 +42,6 @@ endif(BUILD_TCL OR BUILD_PYTHON)
 if(BUILD_TCL)
   find_package(TclStub REQUIRED)
 endif()
-if(BUILD_PYTHON)
-  find_package(PythonLibs REQUIRED)
-endif(BUILD_PYTHON)
 if(BUILD_VERILOG)
   find_program(VVP vvp)
   if(NOT VVP)
